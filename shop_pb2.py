@@ -13,7 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nshop.proto\"\x07\n\x05\x45mpty2\n\n\x08\x42ookShopb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nshop.proto\"\x07\n\x05\x45mpty\"\x1b\n\x0cProcessCount\x12\x0b\n\x03num\x18\x01 \x01(\x05\x32/\n\x08\x42ookShop\x12#\n\nGetNumProc\x12\x06.Empty\x1a\r.ProcessCountb\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'shop_pb2', globals())
@@ -22,6 +22,8 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   DESCRIPTOR._options = None
   _EMPTY._serialized_start=14
   _EMPTY._serialized_end=21
-  _BOOKSHOP._serialized_start=23
-  _BOOKSHOP._serialized_end=33
+  _PROCESSCOUNT._serialized_start=23
+  _PROCESSCOUNT._serialized_end=50
+  _BOOKSHOP._serialized_start=52
+  _BOOKSHOP._serialized_end=99
 # @@protoc_insertion_point(module_scope)

@@ -2,6 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
+import shop_pb2 as shop__pb2
 
 
 class BookShopStub(object):
@@ -13,14 +14,30 @@ class BookShopStub(object):
         Args:
             channel: A grpc.Channel.
         """
+        self.GetNumProc = channel.unary_unary(
+                '/BookShop/GetNumProc',
+                request_serializer=shop__pb2.Empty.SerializeToString,
+                response_deserializer=shop__pb2.ProcessCount.FromString,
+                )
 
 
 class BookShopServicer(object):
     """Missing associated documentation comment in .proto file."""
 
+    def GetNumProc(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_BookShopServicer_to_server(servicer, server):
     rpc_method_handlers = {
+            'GetNumProc': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetNumProc,
+                    request_deserializer=shop__pb2.Empty.FromString,
+                    response_serializer=shop__pb2.ProcessCount.SerializeToString,
+            ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
             'BookShop', rpc_method_handlers)
@@ -30,3 +47,20 @@ def add_BookShopServicer_to_server(servicer, server):
  # This class is part of an EXPERIMENTAL API.
 class BookShop(object):
     """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def GetNumProc(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/BookShop/GetNumProc',
+            shop__pb2.Empty.SerializeToString,
+            shop__pb2.ProcessCount.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

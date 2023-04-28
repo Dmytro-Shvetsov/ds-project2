@@ -1,8 +1,11 @@
 syntax = "proto3";
 
 service BookShop {
-
+    rpc GetNumProc(Empty) returns (ProcessCount);
 }
 
 message Empty {}
 
+message ProcessCount {
+    int32 num = 1;
+}
