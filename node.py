@@ -9,9 +9,12 @@ from datetime import datetime, timedelta
 import shop_pb2
 import shop_pb2_grpc
 
+BASE_PORT= 50051
+
 class ShopServicer(shop_pb2_grpc.ShopServicer):
     def __init__(self):
-        pass
+        self.channels = {i:grpc.insecure_channel(f"localhost:{BASE_PORT + i}") for i in range(3) if i != node_id}
+        self.stubs = {i:shop_pb2_grpc.BookShopStub(self.channels[i]) for i in range(3) if i != node_id}
 
 
 class Node(cmd.Cmd):
@@ -20,6 +23,8 @@ class Node(cmd.Cmd):
         super().__init__()
         self.node_id = node_id
         self.prompt = f'Node-{node_id}> '
+        self.channels = {i:grpc.insecure_channel(f"localhost:{BASE_PORT + i}") for i in range(3)}
+        self.stubs = {i:shop_pb2_grpc.BookShopStub(self.channels[i]) for i in range(3)}
 
     def do_Local_store_ps(self, args):
         pass
