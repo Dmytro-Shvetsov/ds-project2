@@ -1,4 +1,18 @@
 import cmd
+import threading
+import grpc
+import time
+from concurrent import futures
+import sys
+import time
+from datetime import datetime, timedelta
+import shop_pb2
+import shop_pb2_grpc
+
+class ShopServicer(shop_pb2_grpc.ShopServicer):
+    def __init__(self):
+        pass
+
 
 class Node(cmd.Cmd):
     prompt = '> '
@@ -31,5 +45,15 @@ class Node(cmd.Cmd):
     def do_Data_status(self, args):
         pass
 
-    
 
+if __name__ ==  "__main__":
+    node_id = sys.argv[1]
+    cli = Node(node_id)
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    shop_pb2_grpc.add_TicTacToeServicer_to_server(ShopServicer(node_id), server)
+    while True:
+        try:
+            cli.cmdloop()
+        except Exception as exc:
+            server.stop(0)
+            raise exc
