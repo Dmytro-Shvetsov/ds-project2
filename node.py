@@ -37,18 +37,22 @@ class Node(cmd.Cmd):
 
         self.queues = []
         self.processes = []
+        self.proc2node = []
 
     def do_Local_store_ps(self, args):
         Node.k = int(args[0])
-        self.queues = [Queue() for _ in range(self.k)]
-        self.processes = [process.Process(p, self.queues[p]) for p in range(self.k)]
+        self.processes = [process.Process(p) for p in range(self.k)]
         for p in self.processes:
             p.start()
 
     def do_Create_chain(self, args):
-        num_procs = []
-        for st in self.stubs.values():
-            num_procs.append(st.GetNumProc(shop_pb2.Empty()).num)
+        num_procs = [self.k]
+        self.proc2node = [self.node_id] * self.k
+
+        for node_id, st in self.stubs.items():
+            n = st.GetNumProc(shop_pb2.Empty()).num
+            num_procs.append(n)
+            self.proc2node.extend([node_id]*n)
 
         num_procs = sum(num_procs)
 
@@ -56,7 +60,14 @@ class Node(cmd.Cmd):
         print(f"Chain is {self.chain}")
 
     def do_List_chain(self, args):
-        pass
+        head_ps = self.chain[0]
+        head_node = self.proc2node[head_ps]
+
+        tail_ps = self.chain[0]
+        tail_node = self.proc2node[tail_ps]
+
+        body = ''.join('Node{}-PS{}'.format(self.proc2node[ps], ps) for ps in self.chain[1:-1])
+        print(f'Node{head_node}->PS{head_ps}(Head)->' + body + f'->Node{tail_node}->PS{tail_ps}(Tail)')
 
     def do_Write(self, args):
         pass
@@ -73,18 +84,21 @@ class Node(cmd.Cmd):
     def do_Data_status(self, args):
         pass
     
-    def __del__(self):
-        for q in self.queues:
+    def finalize(self):
+        for p in self.processes:
             # TODO fix deadlocks
-            q.put_nowait(None)
+            p.in_queue.put_nowait(None)
         for p in self.processes:
             p.join()
 
+    def __del__(self):
+        self.finalize()
 
 if __name__ ==  "__main__":
     node_id = int(sys.argv[1])
     port = BASE_PORT + node_id
     cli = Node(node_id)
+    cli.do_Local_store_ps((2,)) # FIXME
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     shop_pb2_grpc.add_BookShopServicer_to_server(ShopServicer(node_id), server)
     server.add_insecure_port(f'[::]:{port}')
@@ -96,3 +110,5 @@ if __name__ ==  "__main__":
             print(exc)
             server.stop(0)
             break
+        finally:
+            cli.finalize()
