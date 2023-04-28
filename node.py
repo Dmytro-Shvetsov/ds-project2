@@ -50,7 +50,7 @@ if __name__ ==  "__main__":
     node_id = sys.argv[1]
     cli = Node(node_id)
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    shop_pb2_grpc.add_TicTacToeServicer_to_server(ShopServicer(node_id), server)
+    shop_pb2_grpc.add_BookShopServicer_to_server(ShopServicer(node_id), server)
     while True:
         try:
             cli.cmdloop()
