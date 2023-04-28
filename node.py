@@ -20,10 +20,30 @@ class ShopServicer(shop_pb2_grpc.BookShopServicer):
         self.node_id = node_id
         self.channels = {i:grpc.insecure_channel(f"localhost:{BASE_PORT + i}") for i in range(3) if i != node_id}
         self.stubs = {i:shop_pb2_grpc.BookShopStub(self.channels[i]) for i in range(3) if i != node_id}
+        self.chain = []
+        self.proc2node = []
+        self.global_pos = 0
 
     def GetNumProc(self, request, context):
         print(f'My number of processes is {Node.k}')
         return shop_pb2.ProcessCount(num=Node.k)
+    
+    def NotifyChain(self, request, context):
+        self.chain = request.chain
+        self.proc2node = request.proc2node
+        return shop_pb2.Empty()
+    
+    def Write(self, request, context):
+        print(f'Write request received for key {request.key} and value {request.value}')
+        # head_id = Node.proc2node[Node.chain[0]]
+        # head_st = Node.stubs[head_id]
+        # response = head_st.Write(shop_pb2.WriteRequest(key=request.key, value=request.value))
+        Node.processes[request.target]
+        head_id = 
+
+        
+
+        return response
 
 class Node(cmd.Cmd):
     k = 0
@@ -48,15 +68,19 @@ class Node(cmd.Cmd):
     def do_Create_chain(self, args):
         num_procs = [self.k]
         self.proc2node = [self.node_id] * self.k
-
+        self.chain_id2proc = [list(range(self.k))]
         for node_id, st in self.stubs.items():
             n = st.GetNumProc(shop_pb2.Empty()).num
             num_procs.append(n)
             self.proc2node.extend([node_id]*n)
+            self.chain_id2proc[node_id] 
 
         num_procs = sum(num_procs)
 
         self.chain = np.random.choice(range(num_procs), num_procs, replace=False)
+        for st in self.stubs:
+            st.NotifyChain(shop_pb2.Chain(chain=self.chain, proc2node= self.proc2node))
+
         print(f"Chain is {self.chain}")
 
     def do_List_chain(self, args):
@@ -70,7 +94,9 @@ class Node(cmd.Cmd):
         print(f'Node{head_node}->PS{head_ps}(Head)->' + body + f'->Node{tail_node}->PS{tail_ps}(Tail)')
 
     def do_Write(self, args):
-        pass
+        head_id = self.proc2node[self.chain[0]]
+        head_st = self.stubs[head_id]
+        response = head_st.Write(shop_pb2.WriteRequest(key=args[0], value= args[1]))
 
     def do_List_books(self, args):
         pass

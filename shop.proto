@@ -2,10 +2,24 @@ syntax = "proto3";
 
 service BookShop {
     rpc GetNumProc(Empty) returns (ProcessCount);
+    rpc Write(WriteRequest) returns (Empty);
+    rpc ChainNotify(Chain) returns (Empty);
 }
 
 message Empty {}
 
+message Chain{
+    repeated int32 chain = 1;
+    repeated int32 proc2node = 2;
+}
 message ProcessCount {
     int32 num = 1;
+}
+
+message WriteRequest {
+    string key = 1;
+    int32 value = 2;
+    int32 target = 3;
+    int32 pos = 4;
+
 }
