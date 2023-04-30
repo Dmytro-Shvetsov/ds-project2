@@ -98,6 +98,14 @@ class ShopServicer(shop_pb2_grpc.BookShopServicer):
             proc.out_queue.task_done()
             return shop_pb2.Status(status=True)
 
+    def Read(self, request, context):
+        key = request.key
+        self.cli.processes[0].in_queue.put((key, process.Event.READ_SINGLE))
+        msg = self.cli.processes[0].out_queue.get()
+        
+        self.cli.processes[0].out_queue.task_done()
+        return shop_pb2.ReadResponse(value=msg[0], kind= msg[1])
+
 
 class Node(cmd.Cmd):
     prompt = '> '
@@ -112,6 +120,7 @@ class Node(cmd.Cmd):
         self.processes = []
         self.proc2node = []
         self.chain_id2proc = []
+        self.chain = []
 
     def do_Local_store_ps(self, args):
         self.k = int(args)
@@ -148,14 +157,18 @@ class Node(cmd.Cmd):
         print(f'Node{head_node}->PS{head_ps}(Head)->' + body + f'->Node{tail_node}->PS{tail_ps}(Tail)')
 
     def do_Write(self, args):
-        global node
-        args = args.split(' ')
-        head_id = self.proc2node[self.chain[0]]
-        if head_id == self.node_id:
-            response = node.Write(shop_pb2.WriteRequest(key=args[0], value=args[1], pos=0), None)
+        if len(self.chain) != 0: 
+            global node
+            args = args.split(' ')
+            head_id = self.proc2node[self.chain[0]]
+            if head_id == self.node_id:
+                response = node.Write(shop_pb2.WriteRequest(key=args[0], value=args[1], pos=0), None)
+            else:
+                head_st = self.stubs[head_id]
+                response = head_st.Write(shop_pb2.WriteRequest(key=args[0], value=args[1], pos=0))
         else:
-            head_st = self.stubs[head_id]
-            response = head_st.Write(shop_pb2.WriteRequest(key=args[0], value=args[1], pos=0))
+            print('Chain is not created yet')
+            return
 
     def do_List_books(self, args):
         global node
@@ -170,13 +183,60 @@ class Node(cmd.Cmd):
         target_proc.out_queue.task_done()
 
     def do_Read(self, args):
-        pass
+        global node
+        random_proc:process.Process = random.choice(self.processes, 1)[0]
+        random_proc.in_queue.put((args, process.Event.READ_SINGLE))
+        data = random_proc.out_queue.get()
+
+        random_proc.out_queue.task_done()
+
+        if data[1] == 'write_dirty':
+            print(f'Uncommitted write on local process {random_proc.pid}')
+            print(f'Asking head')
+            head_id = self.proc2node[self.chain[0]]
+            if head_id == self.node_id:
+                print(f'Key is not commited. Try again later.')
+                return
+            
+
+            head_st = self.stubs[head_id]
+            response = head_st.Read(shop_pb2.ReadRequest(key=args))
+
+            value, kind = response.value, response.kind
+
+            if kind == None:
+                print(f'Item is missing')
+                return
+                
+            if kind == 'write_dirty':
+                print(f'KEy is not commited. Try again later.')
+                return
+
+            print(f'Book {args} costs {value} EUR')
+
+
+        if data[0] == None:
+            print(f'Item is missing. Try again later.')
+
+        if data[1] == 'write_clean':
+            print(f'Book {args} costs {data[0]} EUR')
+
+
 
     def do_Time_out(self, args):
         pass
 
     def do_Data_status(self, args):
-        pass
+        global node
+        target_proc:process.Process = random.choice(self.processes, 1)[0]
+        target_proc.in_queue.put(process.Event.DATA_STATUS)
+        
+        data = target_proc.out_queue.get()
+        if not data:
+            return print('No books available')
+        for i, (k, v) in enumerate(data.items()):
+            print(f'{i+1}) {k} - {v}')
+        target_proc.out_queue.task_done()
     
     def finalize(self):
         for p in self.processes:

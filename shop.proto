@@ -4,6 +4,7 @@ service BookShop {
     rpc GetNumProc(Empty) returns (ProcessCount);
     rpc Write(WriteRequest) returns (Status);
     rpc ChainNotify(Chain) returns (Empty);
+    prc Read() returns (ReadResponse);
 }
 
 message Empty {}
@@ -25,4 +26,13 @@ message WriteRequest {
     string key = 1;
     string value = 2;
     int32 pos = 4;
+}
+
+message ReadResponse{
+    string value = 1;
+    string kind = 2;
+}
+
+message ReadRequest{
+    string key = 1;
 }
