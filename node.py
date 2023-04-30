@@ -23,16 +23,16 @@ class ShopServicer(shop_pb2_grpc.BookShopServicer):
         self.cli = Node(node_id)
 
     def GetNumProc(self, request, context):
-        print(f'My number of processes is {self.cli.k}')
+        # print(f'My number of processes is {self.cli.k}')
         return shop_pb2.ProcessCount(num=self.cli.k)
     
     def ChainNotify(self, request, context):
         self.cli.chain = request.chain
         self.cli.proc2node = request.proc2node
         self.cli.chain_id2proc = request.chain_id2proc
-        print(f'Chain received: {self.cli.chain}')
-        print(f'Proc2node received: {self.cli.proc2node}')
-        print(f'Chain_id2proc received: {self.cli.chain_id2proc}')
+        # print(f'Chain received: {self.cli.chain}')
+        # print(f'Proc2node received: {self.cli.proc2node}')
+        # print(f'Chain_id2proc received: {self.cli.chain_id2proc}')
 
         return shop_pb2.Empty()
     
@@ -166,10 +166,10 @@ class Node(cmd.Cmd):
             args = args.split(' ')
             head_id = self.proc2node[self.chain[self.head_idx]]
             if head_id == self.node_id:
-                response = node.Write(shop_pb2.WriteRequest(key=args[0], value=args[1], pos=0), None)
+                response = node.Write(shop_pb2.WriteRequest(key=args[0], value=args[1], pos=self.head_idx), None)
             else:
                 head_st = self.stubs[head_id]
-                response = head_st.Write(shop_pb2.WriteRequest(key=args[0], value=args[1], pos=0))
+                response = head_st.Write(shop_pb2.WriteRequest(key=args[0], value=args[1], pos=self.head_idx))
         else:
             print('Chain is not created yet')
             return
@@ -274,7 +274,6 @@ if __name__ ==  "__main__":
     node_id = int(sys.argv[1])
     port = BASE_PORT + node_id
     node = ShopServicer(node_id)
-    node.cli.do_Local_store_ps('2') # FIXME
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     shop_pb2_grpc.add_BookShopServicer_to_server(node, server)
     server.add_insecure_port(f'[::]:{port}')
