@@ -158,7 +158,16 @@ class Node(cmd.Cmd):
             response = head_st.Write(shop_pb2.WriteRequest(key=args[0], value=args[1], pos=0))
 
     def do_List_books(self, args):
-        pass
+        global node
+        target_proc:process.Process = random.choice(self.processes, 1)[0]
+        target_proc.in_queue.put(process.Event.READ)
+        
+        data = target_proc.out_queue.get()
+        if not data:
+            return print('No books available')
+        for i, (k, v) in enumerate(data.items()):
+            print(f'{i+1}) {k} = {v} EUR')
+        target_proc.out_queue.task_done()
 
     def do_Read(self, args):
         pass

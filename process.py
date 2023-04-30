@@ -34,6 +34,8 @@ class Process(Thread):
         logging.info(f'Finalized process #{self.pid}')
 
     def _process_event(self, event):
+        if event == Event.READ:
+            self.out_queue.put({k: v for k, (v, kind) in self.data.items() if kind == Event.WRITE_CLEAN})
         if len(event) == 3:
             key, value, kind = event
             self.data[key] = (value, kind)
