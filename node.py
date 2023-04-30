@@ -18,32 +18,36 @@ BASE_PORT= 8080
 class ShopServicer(shop_pb2_grpc.BookShopServicer):
     def __init__(self, node_id):
         self.node_id = node_id
-        self.channels = {i:grpc.insecure_channel(f"localhost:{BASE_PORT + i}") for i in range(3) if i != node_id}
-        self.stubs = {i:shop_pb2_grpc.BookShopStub(self.channels[i]) for i in range(3) if i != node_id}
-        self.chain = []
-        self.proc2node = []
-        self.global_pos = 0
+        self.cli = Node(node_id)
 
     def GetNumProc(self, request, context):
-        print(f'My number of processes is {Node.k}')
-        return shop_pb2.ProcessCount(num=Node.k)
+        print(f'My number of processes is {self.cli.k}')
+        return shop_pb2.ProcessCount(num=self.cli.k)
     
-    def NotifyChain(self, request, context):
-        self.chain = request.chain
-        self.proc2node = request.proc2node
+    def ChainNotify(self, request, context):
+        self.cli.chain = request.chain
+        self.cli.proc2node = request.proc2node
+        self.cli.chain_id2proc = request.chain_id2proc
+        print(f'Chain received: {self.cli.chain}')
+        print(f'Proc2node received: {self.cli.proc2node}')
+        print(f'Chain_id2proc received: {self.cli.chain_id2proc}')
+
         return shop_pb2.Empty()
     
     def Write(self, request, context):
-        print(f'Write request received for key {request.key} and value {request.value}')
-        # head_id = Node.proc2node[Node.chain[0]]
-        # head_st = Node.stubs[head_id]
-        # response = head_st.Write(shop_pb2.WriteRequest(key=request.key, value=request.value))
-        Node.processes[request.target]
-        head_id = 
+        # print(f'Write request received for key {request.key} and value {request.value}')
+        # target = request.target
+        # global_pos = request.pos
+
+        # self.cli.processes[target]
+        pass
+
+
+
+
+
 
         
-
-        return response
 
 class Node(cmd.Cmd):
     k = 0
@@ -68,18 +72,18 @@ class Node(cmd.Cmd):
     def do_Create_chain(self, args):
         num_procs = [self.k]
         self.proc2node = [self.node_id] * self.k
-        self.chain_id2proc = [list(range(self.k))]
+        self.chain_id2proc = list(range(self.k))
         for node_id, st in self.stubs.items():
             n = st.GetNumProc(shop_pb2.Empty()).num
             num_procs.append(n)
             self.proc2node.extend([node_id]*n)
-            self.chain_id2proc[node_id] 
+            self.chain_id2proc.extend(range(n)) 
 
         num_procs = sum(num_procs)
 
         self.chain = np.random.choice(range(num_procs), num_procs, replace=False)
-        for st in self.stubs:
-            st.NotifyChain(shop_pb2.Chain(chain=self.chain, proc2node= self.proc2node))
+        for st in self.stubs.values():
+            st.ChainNotify(shop_pb2.Chain(chain=self.chain, proc2node= self.proc2node, chain_id2proc=self.chain_id2proc))
 
         print(f"Chain is {self.chain}")
 
@@ -96,7 +100,7 @@ class Node(cmd.Cmd):
     def do_Write(self, args):
         head_id = self.proc2node[self.chain[0]]
         head_st = self.stubs[head_id]
-        response = head_st.Write(shop_pb2.WriteRequest(key=args[0], value= args[1]))
+        response = head_st.Write(shop_pb2.WriteRequest(key=args[0], value= args[1], pos=0))
 
     def do_List_books(self, args):
         pass
@@ -123,18 +127,19 @@ class Node(cmd.Cmd):
 if __name__ ==  "__main__":
     node_id = int(sys.argv[1])
     port = BASE_PORT + node_id
-    cli = Node(node_id)
-    cli.do_Local_store_ps((2,)) # FIXME
+    node = ShopServicer(node_id)
+    node.cli.do_Local_store_ps((2,)) # FIXME
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    shop_pb2_grpc.add_BookShopServicer_to_server(ShopServicer(node_id), server)
+    shop_pb2_grpc.add_BookShopServicer_to_server(node, server)
     server.add_insecure_port(f'[::]:{port}')
     server.start()
     while True:
         try:
-            cli.cmdloop()
+            node.cli.cmdloop()
         except Exception as exc:
             print(exc)
             server.stop(0)
+            raise exc 
             break
         finally:
-            cli.finalize()
+            node.cli.finalize()

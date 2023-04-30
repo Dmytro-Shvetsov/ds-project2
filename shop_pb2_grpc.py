@@ -19,12 +19,34 @@ class BookShopStub(object):
                 request_serializer=shop__pb2.Empty.SerializeToString,
                 response_deserializer=shop__pb2.ProcessCount.FromString,
                 )
+        self.Write = channel.unary_unary(
+                '/BookShop/Write',
+                request_serializer=shop__pb2.WriteRequest.SerializeToString,
+                response_deserializer=shop__pb2.Empty.FromString,
+                )
+        self.ChainNotify = channel.unary_unary(
+                '/BookShop/ChainNotify',
+                request_serializer=shop__pb2.Chain.SerializeToString,
+                response_deserializer=shop__pb2.Empty.FromString,
+                )
 
 
 class BookShopServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def GetNumProc(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Write(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ChainNotify(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -37,6 +59,16 @@ def add_BookShopServicer_to_server(servicer, server):
                     servicer.GetNumProc,
                     request_deserializer=shop__pb2.Empty.FromString,
                     response_serializer=shop__pb2.ProcessCount.SerializeToString,
+            ),
+            'Write': grpc.unary_unary_rpc_method_handler(
+                    servicer.Write,
+                    request_deserializer=shop__pb2.WriteRequest.FromString,
+                    response_serializer=shop__pb2.Empty.SerializeToString,
+            ),
+            'ChainNotify': grpc.unary_unary_rpc_method_handler(
+                    servicer.ChainNotify,
+                    request_deserializer=shop__pb2.Chain.FromString,
+                    response_serializer=shop__pb2.Empty.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -62,5 +94,39 @@ class BookShop(object):
         return grpc.experimental.unary_unary(request, target, '/BookShop/GetNumProc',
             shop__pb2.Empty.SerializeToString,
             shop__pb2.ProcessCount.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def Write(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/BookShop/Write',
+            shop__pb2.WriteRequest.SerializeToString,
+            shop__pb2.Empty.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def ChainNotify(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/BookShop/ChainNotify',
+            shop__pb2.Chain.SerializeToString,
+            shop__pb2.Empty.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
