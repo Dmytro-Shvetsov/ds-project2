@@ -2,7 +2,7 @@ syntax = "proto3";
 
 service BookShop {
     rpc GetNumProc(Empty) returns (ProcessCount);
-    rpc Write(WriteRequest) returns (Empty);
+    rpc Write(WriteRequest) returns (Status);
     rpc ChainNotify(Chain) returns (Empty);
 }
 
@@ -17,9 +17,12 @@ message ProcessCount {
     int32 num = 1;
 }
 
+message Status {
+    bool status = 1;
+}
+
 message WriteRequest {
     string key = 1;
-    int32 value = 2;
+    string value = 2;
     int32 pos = 4;
-
 }

@@ -13,7 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nshop.proto\"\x07\n\x05\x45mpty\"@\n\x05\x43hain\x12\r\n\x05\x63hain\x18\x01 \x03(\x05\x12\x11\n\tproc2node\x18\x02 \x03(\x05\x12\x15\n\rchain_id2proc\x18\x03 \x03(\x05\"\x1b\n\x0cProcessCount\x12\x0b\n\x03num\x18\x01 \x01(\x05\"7\n\x0cWriteRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x05\x12\x0b\n\x03pos\x18\x04 \x01(\x05\x32n\n\x08\x42ookShop\x12#\n\nGetNumProc\x12\x06.Empty\x1a\r.ProcessCount\x12\x1e\n\x05Write\x12\r.WriteRequest\x1a\x06.Empty\x12\x1d\n\x0b\x43hainNotify\x12\x06.Chain\x1a\x06.Emptyb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nshop.proto\"\x07\n\x05\x45mpty\"@\n\x05\x43hain\x12\r\n\x05\x63hain\x18\x01 \x03(\x05\x12\x11\n\tproc2node\x18\x02 \x03(\x05\x12\x15\n\rchain_id2proc\x18\x03 \x03(\x05\"\x1b\n\x0cProcessCount\x12\x0b\n\x03num\x18\x01 \x01(\x05\"\x18\n\x06Status\x12\x0e\n\x06status\x18\x01 \x01(\x08\"7\n\x0cWriteRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\x12\x0b\n\x03pos\x18\x04 \x01(\x05\x32o\n\x08\x42ookShop\x12#\n\nGetNumProc\x12\x06.Empty\x1a\r.ProcessCount\x12\x1f\n\x05Write\x12\r.WriteRequest\x1a\x07.Status\x12\x1d\n\x0b\x43hainNotify\x12\x06.Chain\x1a\x06.Emptyb\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'shop_pb2', globals())
@@ -26,8 +26,10 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _CHAIN._serialized_end=87
   _PROCESSCOUNT._serialized_start=89
   _PROCESSCOUNT._serialized_end=116
-  _WRITEREQUEST._serialized_start=118
-  _WRITEREQUEST._serialized_end=173
-  _BOOKSHOP._serialized_start=175
-  _BOOKSHOP._serialized_end=285
+  _STATUS._serialized_start=118
+  _STATUS._serialized_end=142
+  _WRITEREQUEST._serialized_start=144
+  _WRITEREQUEST._serialized_end=199
+  _BOOKSHOP._serialized_start=201
+  _BOOKSHOP._serialized_end=312
 # @@protoc_insertion_point(module_scope)

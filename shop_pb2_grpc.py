@@ -22,7 +22,7 @@ class BookShopStub(object):
         self.Write = channel.unary_unary(
                 '/BookShop/Write',
                 request_serializer=shop__pb2.WriteRequest.SerializeToString,
-                response_deserializer=shop__pb2.Empty.FromString,
+                response_deserializer=shop__pb2.Status.FromString,
                 )
         self.ChainNotify = channel.unary_unary(
                 '/BookShop/ChainNotify',
@@ -63,7 +63,7 @@ def add_BookShopServicer_to_server(servicer, server):
             'Write': grpc.unary_unary_rpc_method_handler(
                     servicer.Write,
                     request_deserializer=shop__pb2.WriteRequest.FromString,
-                    response_serializer=shop__pb2.Empty.SerializeToString,
+                    response_serializer=shop__pb2.Status.SerializeToString,
             ),
             'ChainNotify': grpc.unary_unary_rpc_method_handler(
                     servicer.ChainNotify,
@@ -110,7 +110,7 @@ class BookShop(object):
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/BookShop/Write',
             shop__pb2.WriteRequest.SerializeToString,
-            shop__pb2.Empty.FromString,
+            shop__pb2.Status.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
