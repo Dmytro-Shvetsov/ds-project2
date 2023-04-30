@@ -117,6 +117,7 @@ class Node(cmd.Cmd):
         self.stubs = {i:shop_pb2_grpc.BookShopStub(self.channels[i]) for i in range(3) if i != node_id}
 
         self.k = 0
+        self.head_idx = 0
         self.processes = []
         self.proc2node = []
         self.chain_id2proc = []
@@ -147,20 +148,23 @@ class Node(cmd.Cmd):
         print(f"Chain is {self.chain}")
 
     def do_List_chain(self, args):
-        head_ps = self.chain[0]
+        if len(self.chain) == 0:
+            print('Chain is not created')
+            return
+        head_ps = self.chain[self.head_idx]
         head_node = self.proc2node[head_ps]
 
-        tail_ps = self.chain[0]
+        tail_ps = self.chain[self.head_idx]
         tail_node = self.proc2node[tail_ps]
 
-        body = ''.join('Node{}-PS{}'.format(self.proc2node[ps], ps) for ps in self.chain[1:-1])
+        body = '->'.join('Node{}-PS{}'.format(self.proc2node[ps], ps) for ps in self.chain[1:-1])
         print(f'Node{head_node}->PS{head_ps}(Head)->' + body + f'->Node{tail_node}->PS{tail_ps}(Tail)')
 
     def do_Write(self, args):
         if len(self.chain) != 0: 
             global node
             args = args.split(' ')
-            head_id = self.proc2node[self.chain[0]]
+            head_id = self.proc2node[self.chain[self.head_idx]]
             if head_id == self.node_id:
                 response = node.Write(shop_pb2.WriteRequest(key=args[0], value=args[1], pos=0), None)
             else:
@@ -193,11 +197,10 @@ class Node(cmd.Cmd):
         if data[1] == 'write_dirty':
             print(f'Uncommitted write on local process {random_proc.pid}')
             print(f'Asking head')
-            head_id = self.proc2node[self.chain[0]]
+            head_id = self.proc2node[self.chain[self.head_idx]]
             if head_id == self.node_id:
                 print(f'Key is not commited. Try again later.')
                 return
-            
 
             head_st = self.stubs[head_id]
             response = head_st.Read(shop_pb2.ReadRequest(key=args))
@@ -221,7 +224,17 @@ class Node(cmd.Cmd):
         if data[1] == 'write_clean':
             print(f'Book {args} costs {data[0]} EUR')
 
-
+    def do_Remove_head(self, args):
+        if len(self.chain) == 0:
+            print('Chain is not created')
+            return
+        
+        if self.head_idx == len(self.chain) - 1:
+            print('Cannot remove the head - only one process left')
+            return
+        
+        self.head_idx = self.head_idx + 1
+        self.do_List_chain('')
 
     def do_Time_out(self, args):
         pass
@@ -240,7 +253,6 @@ class Node(cmd.Cmd):
     
     def finalize(self):
         for p in self.processes:
-            # TODO fix deadlocks
             p.in_queue.put_nowait(None)
         for p in self.processes:
             p.join()
