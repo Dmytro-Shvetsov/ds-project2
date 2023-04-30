@@ -217,7 +217,6 @@ class Node(cmd.Cmd):
 
             print(f'Book {args} costs {value} EUR')
 
-
         if data[0] == None:
             print(f'Item is missing. Try again later.')
 
@@ -234,6 +233,16 @@ class Node(cmd.Cmd):
             return
         
         self.head_idx = self.head_idx + 1
+        self.do_List_chain('')
+
+    def do_Restore_head(self, args):
+        if len(self.chain) == 0:
+            print('Chain is not created')
+            return
+        if self.head_idx == len(self.chain) - 1:
+            print('Cannot restore the head - nothing was removed')
+            return
+        self.head_idx = self.head_idx - 1
         self.do_List_chain('')
 
     def do_Time_out(self, args):
@@ -259,6 +268,7 @@ class Node(cmd.Cmd):
 
     def __del__(self):
         self.finalize()
+
 
 if __name__ ==  "__main__":
     node_id = int(sys.argv[1])
